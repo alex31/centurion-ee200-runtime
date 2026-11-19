@@ -8,11 +8,10 @@
 
 __shrl:
 	stx	(-s)
-	ldx	4(s)
-	lda	15
+	lda	31
 	nab
 	bz	nowork
-	xax
+	xfr	b,x
 	lda	4(s)
 	ldb	6(s)
 next:
@@ -23,6 +22,8 @@ next:
 out:
 	sta	(__hireg)
 	ldx	(s+)
+	lda	(s)
+	sta	4(s)
 	lda	4
 	add	a,s	; pull TOS out of the way
 	rsr

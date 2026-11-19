@@ -12,8 +12,16 @@ __ccnel:
 	ldb (__hireg)
 	sab
 	bnz true
-	; already 0 and Z
+	lda (s)
+	sta 4(s)
+	lda 4
+	add a,s
+	clr b
 	rsr
 true:
+	lda (s)
+	sta 4(s)
+	lda 4
+	add a,s
 	ldb 1
 	rsr

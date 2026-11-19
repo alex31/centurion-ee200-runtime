@@ -12,6 +12,8 @@ __orl:
 	ori	a,b
 	stb	(__hireg)
 	ldb	4(s)
+	lda (s)
+	sta 4(s)
 	lda	4
 	add	a,s
 	rsr

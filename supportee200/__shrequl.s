@@ -1,44 +1,34 @@
-;
-;	Shift right (TOS) by non constant B unsigned
-;
-	.setcpu	4
+; Shift the pointed-to 32-bit value, returning __hireg:B.
+	.setcpu 6
 	.export __shrequl
-
 	.code
-
 __shrequl:
-	stx	(-s)
-	xfr	y,a
-	sta	(-s)
-	ldx	4(s)
-	lda	15
+	stx (-s)
+	xfr y,a
+	sta (-s)
+	ldx 6(s)
+	lda 31
 	nab
-	bz	nowork
-	xay
-	lda	(x)
-	ldb	2(x)
-	; First shift by hand
-	rl
-	rrr	a
-	bra	go
+	xfr b,y
+	lda (x)
+	ldb 2(x)
+	ori y,y
+	bz done
 next:
-	sra
-go:
-	rrr	b
-	dcr	y
-	bnz	next
-	sta	(x)
-	stb	2(x)
-out:
-	sta	(__hireg)
-	lda	(s+)
+	rl
+	rrr a
+	rrr b
+	dcr y
+	bnz next
+	sta (x)
+	stb 2(x)
+done:
+	sta (__hireg)
+	lda (s+)
 	xay
-	ldx	(s+)
-	inr	s
-	inr	s	; pull TOS out of the way
+	ldx (s+)
+	lda (s)
+	sta 2(s)
+	inr s
+	inr s
 	rsr
-nowork:
-	lda	(x)
-	ldb	2(x)
-	bra	out
-	

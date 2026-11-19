@@ -1,61 +1,29 @@
-;
-;	32bit multiply
-;
-;
-;	TOS * hireg:B
-;
-	.setcpu	4
+; Low 32 bits of stacked lhs * (__hireg:B), for both signed and unsigned C.
+	.setcpu 6
 	.export __mull
 	.export __mullu
-
 	.code
-
 __mull:
 __mullu:
-	stx	(-s)
-	xfr	y,x
-	stx	(-s)
-	xfr	z,x
-	stx	(-s)
-
-	lda	(__hireg)
-	xay
-	xfr	b,z
-
-	; Y:Z is one half
-
-	lda	8(s)
-	ldb	10(s)
-
-	; A:B the other
-
-	ldx	32	; counter
-
-nextbit:
-	slr	z
-	rlr	y
-	slr	b
-	rlr	a
-	bnl	noadd
-	; Y:Z += A:B
-	add	a,y
-	add	b,z
-	; Deal with carry by hand
-	bnl	noadd
-	inr	y
-noadd:
-	dcx
-	bnz	nextbit
-	; Result is now in Y:Z
-	xfr	y,a
-	sta	(__hireg)
-	xfr	z,b
-	lda	(s+)
-	xay
-	lda	(s+)
-	xaz
-	ldx	(s+)
-	lda	4
-	add	a,s	; Clean up caller frame
+	stb (-s)		; rhs low, caller X, lhs high, lhs low
+	lda 4(s)
+	mul a,b
+	stb (-s)		; low word of lhs.high * rhs.low
+	lda (__hireg)
+	ldb 8(s)
+	mul a,b
+	lda (s)
+	aab
+	stb (s)			; sum of cross products, modulo 65536
+	lda 8(s)
+	ldb 2(s)
+	mul b,a			; A:B = lhs.low * rhs.low
+	stb 6(s)
+	ldb (s)
+	aab
+	stb (__hireg)
+	ldb 6(s)
+	lda 4(s)		; move saved caller X past the consumed lhs
+	sta 8(s)
+	inr s,8
 	rsr
-

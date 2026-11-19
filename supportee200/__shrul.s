@@ -8,25 +8,23 @@
 
 __shrul:
 	stx	(-s)
-	lda	15
+	lda	31
 	nab
 	bz	nowork
-	xax
+	xfr	b,x
 	lda	4(s)
 	ldb	6(s)
-	; First shift by hand
+next:
 	rl
 	rrr	a
-	bra	go
-next:
-	sra
-go:
 	rrr	b
 	dcx
 	bnz	next
 out:
 	sta	(__hireg)
 	ldx	(s+)
+	lda	(s)
+	sta	4(s)
 	lda	4
 	add	a,s	; pull TOS out of the way
 	rsr

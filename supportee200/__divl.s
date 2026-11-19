@@ -1,79 +1,99 @@
-;
-;	Do a 32bit divide unsigned
-;
-	.setcpu	4
+; Signed 32-bit quotient and remainder using the unsigned divider.
+; The magnitude conversion is modulo 2^32, including LONG_MIN.
+	.setcpu 6
 	.export __divl
 	.export __reml
 	.code
 
 __divl:
-	stb	(-s)
-	ldb	(__hireg)
-	stb	(-s)
-	lda	1
-	jsr	signfix	; X is sign info and saved by the jsr
-	jsr	div32x32
-	; Result is in the TOS value
-	lda	6(s)
-	ldb	8(s)
-dosign:
-	ori	x,x
-	bz	noneg
-	ivr	a
-	ivr	b	; negate result
-	inr	b
-	bnz	norip
-	inr	a
-norip:
-noneg:
-	sta	(__hireg)
-	lda	8	; clean up frame
-	add	a,s
-	rsr
-
-__reml:
-	stb	(-s)
-	ldb	(__hireg)
-	stb	(-s)
 	cla
-	jsr	signfix2
-	jsr	div32x32
-	bra	dosign
-
-; Fix signs for divide, turn both positive and count signs
-signfix:
-	clr	x
-	lda	2(s)	; value just pushed
-	bp	nosh1
-	dcx
-; Comm part of the fixup. For rem we don't care about the sign of the
-; second value for sign fixup
-sfcommon:
-	ldb	4(s)
-	ivr	b
+	bra begin
+__reml:
+	lda 1
+begin:
+	sta (-s)
+	stx (-s)
+	cla
+	sta (-s)	; remainder sign
+	sta (-s)	; quotient sign
+	; 0 quotient sign, 2 remainder sign, 4 return X, 6 selector,
+	; 8 caller X, 10/12 dividend.  Divisor is __hireg:B.
+	lda 10(s)
+	bp dividend_positive
 	iva
-	inr	b
-	bnz	norip2
+	sta 10(s)
+	stb (-s)	; preserve divisor low word
+	ldb 14(s)
+	ivr b
+	inr b
+	stb 14(s)
+	bnz dividend_no_carry
+	lda 12(s)
 	ina
-norip2:	sta	2(s)
-	stb	4(s)
-nosh1:
-	lda	8(s)
-	bp	nosh2
-	ldb	10(s)
-	ivr	b
+	sta 12(s)
+dividend_no_carry:
+	ldb (s+)
+	lda 1
+	sta (s)
+	sta 2(s)
+dividend_positive:
+	lda (__hireg)
+	bp divisor_positive
 	iva
-	inr	b
-	bnz	norip3
+	sta (__hireg)
+	ivr b
+	inr b
+	bnz divisor_no_carry
+	lda (__hireg)
 	ina
-norip3:	sta	8(s)
-	stb	10(s)
-	inx
-nosh2:
+	sta (__hireg)
+divisor_no_carry:
+	stb (-s)
+	lda 1
+	ldb 2(s)
+	ore a,b
+	stb 2(s)
+	ldb (s+)
+divisor_positive:
+	stb (-s)	; preserve divisor low while copying dividend
+	ldb 14(s)
+	stb (-s)
+	lda 14(s)
+	sta (-s)
+	ldb 4(s)
+	lda 12(s)
+	bz divide
+	jsr __remul
+	bra signed_result
+divide:
+	jsr __divul
+signed_result:
+	inr s
+	inr s
+	lda 6(s)
+	bz quotient_sign
+	lda 2(s)
+	bra check_sign
+quotient_sign:
+	lda (s)
+check_sign:
+	bz finish
+	ivr b
+	inr b
+	bnz negate_high
+	lda (__hireg)
+	iva
+	ina
+	sta (__hireg)
+	bra finish
+negate_high:
+	lda (__hireg)
+	iva
+	sta (__hireg)
+finish:
+	ldx 4(s)
+	lda 8(s)
+	sta 12(s)
+	lda 12
+	add a,s
 	rsr
-; Version for remainder
-signfix2:
-	clr	x
-	lda	2(s)
-	bp	nosh1
-	bra	sfcommon

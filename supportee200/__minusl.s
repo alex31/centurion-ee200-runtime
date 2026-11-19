@@ -10,13 +10,15 @@ __minusl:
 	lda	4(s)
 	sab
 	stb	4(s)		; save it for a moment
-	bl	ripple
+	bnl	ripple
 	lda	2(s)
 minus2:
 	ldb	(__hireg)
 	sab
 	stb	(__hireg)
 	ldb	4(s)
+	lda	(s)
+	sta	4(s)
 	lda	4
 	add	a,s
 	rsr

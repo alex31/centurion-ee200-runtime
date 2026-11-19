@@ -43,7 +43,12 @@ ret0:
 __cclt:
 	bz	ret0
 __cclteq:
-	ble	ret1
+	bz	ret1
+	bf	lt_overflow
+	bm	ret1
+	bra	ret0
+lt_overflow:
+	bp	ret1
 	bra	ret0
 
 __ccltu:
@@ -57,8 +62,12 @@ __ccgteq:
 	bz	ret1
 __ccgt:
 	bz	ret0
-	ble	ret0
-	bra	ret1
+	bf	gt_overflow
+	bp	ret1
+	bra	ret0
+gt_overflow:
+	bm	ret1
+	bra	ret0
 
 __ccgtequ:
 	bz	ret1

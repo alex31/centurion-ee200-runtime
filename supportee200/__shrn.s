@@ -1,32 +1,22 @@
-;
-;	Shift right TOS by non constant B
-;
-	.setcpu	4
+; Shift stacked 16-bit operand by the count in B, preserving caller X.
+	.setcpu 6
 	.export __shr
-
 	.code
-
-; Need to do a spot of work for the unsinged shift
 __shr:
-	lda	15
-	nab
-	bz	nowork
-	lda	2(s)
-	bz	nowork
-	; Might be worth byte swap optimzations ?
+	stx (-s)
+	xfr b,x
+	ldb 4(s)
+	ori x,x
+	bz done
 next:
-	sra
-go:
-	dcr	b
-	bnz	next
+	srr b
+	dcx
+	bnz next
 done:
-	inr	s
-	inr	s	; pull TOS out of the way
-	xab
+	ldx (s+)
+	lda (s)
+	sta 2(s)
+	inr s
+	inr s
 	rsr
-nowork:
-	ldb	2(s)
-	inr	s
-	inr	s
-	rsr
-	
+

@@ -21,12 +21,16 @@ next:
 	xab
 	lda	2(s)
 	stb	(a)
+	lda (s)
+	sta 2(s)
 	inr	s
 	inr	s	; pull TOS out of the way
 	rsr
 nowork:
 	lda	2(s)
 	ldb	(a)
+	lda (s)
+	sta 2(s)
 	inr	s
 	inr	s	; pull TOS out of the way
 	rsr

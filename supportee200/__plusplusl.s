@@ -26,6 +26,8 @@ eq2:
 	sta	(__hireg)
 	ldb	(s+)
 	ldx	(s+)
+	lda (s)
+	sta 2(s)
 	inr	s
 	inr	s
 	rsr

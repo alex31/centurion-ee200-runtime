@@ -7,6 +7,7 @@
 __mul:
 __mulu:
 	; Bit shift multiply
+	xfr	b,a		; right operand, before loading the stacked left operand
 	stx	(-s)
 	xfr	y,x
 	stx	(-s)
@@ -28,6 +29,8 @@ noadd:	dcx
 	lda	(s+)
 	xay
 	ldx	(s+)
+	lda	(s)		; preserve the caller's X while discarding the operand
+	sta	2(s)
 	inr	s
 	inr	s
 	rsr
